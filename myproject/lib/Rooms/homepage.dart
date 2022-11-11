@@ -10,21 +10,23 @@ import 'package:myproject/Rooms/roominfo.dart';
  }
 
  class _HomepageState extends State<Homepage> {
-   List Roomallocation2 = List.empty();
-   String roomname = "";
-   String topic = "";
+   List Folderallocation2 = List.empty();
+   String Foldername = "";
+   String Folderupdate = "";
+   String updatename = "";
+   String folderid = "";
    @override
    void initState() {
      super.initState();
-     Roomallocation2 = ["UN25", "DISEC"];
+     Folderallocation2 = ["Imp"];
    }
    createToDo() {
      DocumentReference documentReference =
-     FirebaseFirestore.instance.collection("Room").doc(roomname);
+     FirebaseFirestore.instance.collection("folder").doc(Foldername);
 
      Map<String, String>  roomList = {
-       "MUNSOCRoomName": roomname,
-       "MUNSOCTopic":  topic
+       "FolderId": Foldername,
+       "FolderName":  Foldername,
      };
      documentReference
          .set(roomList)
@@ -33,25 +35,40 @@ import 'package:myproject/Rooms/roominfo.dart';
    deleteTodo(item) {
 
      DocumentReference documentReference =
-     FirebaseFirestore.instance.collection("Room").doc(item);
-
+     FirebaseFirestore.instance.collection("folder").doc(item);
+     print(item);
      documentReference.delete().whenComplete(() => print("deleted successfully"));
    }
+   updateToDo()  {
+     setState(() {
+       DocumentReference documentReference =
+       FirebaseFirestore.instance.collection("folder").doc(updatename);
+       Map<String, String> updates = {
+         "FolderName": Folderupdate,
+       };
+       documentReference
+           .update(updates)
+           .then((value) => print("DocumentSnapshot successfully updated!"));
+     });
+
+   }
+
 
    @override
    Widget build(BuildContext context) {
      return  Scaffold(
        appBar: AppBar(
-         title: const Text('ROOM ALLOCATION'),
+         title: const Text('To Do list'),
          centerTitle: true,
        ),
        body: StreamBuilder<QuerySnapshot>(
-           stream:  FirebaseFirestore.instance.collection("Room").snapshots(),
+           stream:  FirebaseFirestore.instance.collection("folder").snapshots(),
        builder: (context, snapshot) {
              if (snapshot.hasError) {
-       return Text('Something went wrong');
+       return const Text('Something went wrong');
            } else if (snapshot.hasData || snapshot.data != null) {
        return ListView.builder(
+           key: UniqueKey(),
            shrinkWrap: true,
            itemCount: snapshot.data?.docs.length,
            itemBuilder: (BuildContext context, int index) {
@@ -62,28 +79,84 @@ import 'package:myproject/Rooms/roominfo.dart';
                  child: Card(
                    elevation: 4,
                    child: ListTile(
-                     title: Text((documentSnapshot != null) ? (documentSnapshot["MUNSOCRoomName"]) : ""
+                     title: Text((documentSnapshot != null) ? (documentSnapshot["FolderName"]) : ""
                      ),
-                     subtitle: Text((documentSnapshot != null)
-                         ? ((documentSnapshot["MUNSOCTopic"] != null)
-                         ? documentSnapshot["MUNSOCTopic"]
-                         : "")
-                         : ""),
-                     trailing: IconButton(
-                       icon: const Icon(Icons.delete),
-                       color: Colors.indigo,
-                       onPressed: () {
-                         setState(() {
-                           //todos.removeAt(index);
-                           deleteTodo((documentSnapshot != null) ? (documentSnapshot["MUNSOCRoomName"]) : "");
-                         });
-                       },
+
+                     trailing: Row(
+                       mainAxisSize: MainAxisSize.min,
+                       children: <Widget>[
+                         IconButton(
+                           icon: const Icon(Icons.edit),
+                           color: Colors.indigo,
+                           onPressed: () {
+                             showDialog(
+                                 context: context,
+                                 builder: (BuildContext context) {
+                                   return AlertDialog(
+                                     shape: RoundedRectangleBorder(
+                                         borderRadius: BorderRadius.circular(10)),
+                                     title: const Text("Update Note"),
+                                     content: SizedBox(
+                                       width: 400,
+                                       height: 50,
+                                       child: Column(
+                                         children: [
+                                           TextField(
+                                             style: const TextStyle(
+
+                                               color: Colors.grey,
+                                             ),
+                                             decoration: const InputDecoration(
+                                                 hintText: 'New Name',
+                                                 hintStyle: TextStyle(
+                                                   color: Colors.grey,
+                                                 ),
+                                                 enabledBorder: UnderlineInputBorder(
+                                                   borderSide: BorderSide(color: Colors.grey),
+                                                 )),
+                                             onChanged: (String value) {
+
+                                               Folderupdate = value;
+                                             },
+                                           ),
+
+                                         ],
+                                       ),
+                                     ),
+                                     actions: <Widget>[
+                                       TextButton(
+                                           onPressed: () {
+                                             updatename = (documentSnapshot != null) ? (documentSnapshot["FolderId"]) : "";
+                                             setState(() {
+                                               //todos.add(title);
+                                               updateToDo();
+                                             });
+                                             Navigator.of(context).pop();
+                                           },
+                                           child: const Text("Update"))
+                                     ],
+                                   );
+                                 });
+                           },
+                         ),
+                           IconButton(
+                           icon: const Icon(Icons.check),
+                           color: Colors.indigo,
+                           onPressed: () {
+                             setState(() {
+                               //todos.removeAt(index);
+                               deleteTodo((documentSnapshot != null) ? (documentSnapshot["FolderId"]) : "");
+                             });
+                           },
+                         ),
+                       ],
                      ),
+
                      onTap: () {
                        Navigator.push(
                            context,
                            MaterialPageRoute(
-                               builder: (context) => RoomInfo(roomcoming: (documentSnapshot != null) ? (documentSnapshot["MUNSOCRoomName"]) : "")));
+                               builder: (context) => RoomInfo(roomcoming: (documentSnapshot != null) ? (documentSnapshot["FolderName"]) : "")));
                      },
                    ),
                  ));
@@ -100,7 +173,7 @@ import 'package:myproject/Rooms/roominfo.dart';
        persistentFooterButtons: [ElevatedButton(
          style: ElevatedButton.styleFrom(
            padding: EdgeInsets.zero,
-           minimumSize: Size(20, 50),
+           minimumSize: const Size(20, 50),
            elevation: 10,
          ),
          onPressed: () {
@@ -110,18 +183,18 @@ import 'package:myproject/Rooms/roominfo.dart';
                  return AlertDialog(
                    shape: RoundedRectangleBorder(
                        borderRadius: BorderRadius.circular(10)),
-                   title: const Text("Add Room"),
+                   title: const Text("Add Note"),
                    content: SizedBox(
                      width: 400,
-                     height: 100,
+                     height: 50,
                      child: Column(
                        children: [
                          TextField(
-                           style: TextStyle(
+                           style: const TextStyle(
                              color: Colors.grey,
                            ),
-                           decoration: InputDecoration(
-                               hintText: 'Roomname',
+                           decoration: const InputDecoration(
+                               hintText: 'Notename',
                                hintStyle: TextStyle(
                                  color: Colors.grey,
                                ),
@@ -129,25 +202,10 @@ import 'package:myproject/Rooms/roominfo.dart';
                                  borderSide: BorderSide(color: Colors.grey),
                                )),
                            onChanged: (String value) {
-                             roomname = value;
+                             Foldername = value;
                            },
                          ),
-                         TextField(
-                           style: TextStyle(
-                             color: Colors.grey,
-                           ),
-                           decoration: InputDecoration(
-                               hintText: 'Topic',
-                               hintStyle: TextStyle(
-                                 color: Colors.grey,
-                               ),
-                               enabledBorder: UnderlineInputBorder(
-                                 borderSide: BorderSide(color: Colors.grey),
-                               )),
-                           onChanged: (String value) {
-                             topic = value;
-                           },
-                         ),
+
                        ],
                      ),
                    ),
@@ -170,7 +228,7 @@ import 'package:myproject/Rooms/roominfo.dart';
            crossAxisAlignment: CrossAxisAlignment.center,
            children: const [
              Text(
-               'ADD ROOM',
+               'ADD Note',
                style: TextStyle(
                  fontSize: 20,
                  fontWeight: FontWeight.bold,

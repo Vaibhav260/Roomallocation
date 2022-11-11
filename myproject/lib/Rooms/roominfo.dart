@@ -12,55 +12,54 @@ class _RoomInfoState extends State<RoomInfo> {
 
 
 
-  List er = List.empty();
-  List delegate = List.empty();
-  String ername = "";
-  String delegatename = "";
+  List thought = List.empty();
+  String Thoughtname = "";
+  String Folderupdate = "";
+  String updatename = "";
+
 
   @override
   void initState() {
     super.initState();
-    er = ["UN25"];
-    delegate = ["DISEC"];
+    thought = ["Complete Mad"];
   }
-
-  erassgn() {
+  CreateTodo() {
     DocumentReference documentReference =
-    FirebaseFirestore.instance.collection("Room").doc(widget.roomcoming).collection("EB").doc(ername);
+    FirebaseFirestore.instance.collection("folder").doc(widget.roomcoming).collection("thought").doc(Thoughtname);
 
-    var erassigned = {
-      "MUNSOCerName": ername,
+    var Thougts = {
+      "ThoughtId":  Thoughtname,
+      "ThoughtName": Thoughtname,
     };
     documentReference
-        .set(erassigned)
+        .set(Thougts)
         .whenComplete(() => const Text("Data stored successfully"));
   }
 
-  delegateassgn() {
-    DocumentReference documentReference =
-    FirebaseFirestore.instance.collection("Room").doc(widget.roomcoming).collection("Delegates").doc(delegatename);
-
-    var delegateassigned = {
-      "MUNSOCDelegateName": delegatename,
-    };
-    documentReference
-        .set(delegateassigned)
-        .whenComplete(() => const Text("Data stored successfully"));
-  }
-  deleteTodoDelegates(item) {
+  deleteTodo(item) {
 
     DocumentReference documentReference =
-    FirebaseFirestore.instance.collection("Room").doc(widget.roomcoming).collection("Delegates").doc(item);
+    FirebaseFirestore.instance.collection("folder").doc(widget.roomcoming).collection("thought").doc(item);
 
     documentReference.delete().whenComplete(() => print("deleted successfully"));
   }
-  deleteTodoEB(item) {
+  updateToDo()  {
+    setState(() {
+      DocumentReference documentReference =
+      FirebaseFirestore.instance.collection("folder").doc(widget.roomcoming).collection("thought").doc(updatename);
+      Map<String, String> updates = {
+        "ThoughtName": Folderupdate,
+      };
+      documentReference
+          .update(updates)
+          .then((value) => print("DocumentSnapshot successfully updated!"));
 
-    DocumentReference documentReference =
-    FirebaseFirestore.instance.collection("Room").doc(widget.roomcoming).collection("EB").doc(item);
 
-    documentReference.delete().whenComplete(() => print("deleted successfully"));
+    });
+
   }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,10 +68,10 @@ class _RoomInfoState extends State<RoomInfo> {
           centerTitle: true,
         ),
         body: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection("Room").doc(widget.roomcoming).collection("EB").snapshots(),
+            stream: FirebaseFirestore.instance.collection("folder").doc(widget.roomcoming).collection("thought").snapshots(),
           builder: (context,Snapshot1) {
             return StreamBuilder<QuerySnapshot>(
-                stream:  FirebaseFirestore.instance.collection("Room").doc(widget.roomcoming).collection("Delegates").snapshots(),
+                stream:  FirebaseFirestore.instance.collection("folder").doc(widget.roomcoming).collection("thought").snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError && Snapshot1.hasError) {
 
@@ -81,10 +80,10 @@ class _RoomInfoState extends State<RoomInfo> {
                     return Column(
                         children: [
                         Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(1),
                           color: Colors.indigoAccent,
                           child: const ListTile(
-                            leading: Text('Assign EB',style: TextStyle(fontSize: 18 ,fontWeight: FontWeight.bold)),
+                            leading: Text('ToDo',style: TextStyle(fontSize: 18 ,fontWeight: FontWeight.bold)),
 
                           ),
                         ),
@@ -95,72 +94,92 @@ class _RoomInfoState extends State<RoomInfo> {
                               itemBuilder: (BuildContext context, int index) {
                                 QueryDocumentSnapshot<Object?>? documentSnapshot =
                                 Snapshot1.data?.docs[index];
+
                                 return Dismissible(
                                     key: Key(index.toString()),
                                     child: Card(
                                       elevation: 4,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(50.0),
+
                                       ),
                                       child: ListTile(
-                                        title: Text((documentSnapshot != null) ? (documentSnapshot["MUNSOCerName"]) : ""
+                                        title: Text((documentSnapshot != null) ? (documentSnapshot["ThoughtName"]) : ""
                                         ),
-                                        trailing: IconButton(
-                                          icon: const Icon(Icons.delete),
-                                          color: Colors.indigo,
-                                          onPressed: () {
-                                            setState(() {
-                                              //todos.removeAt(index);
-                                              deleteTodoEB((documentSnapshot != null) ? (documentSnapshot["MUNSOCerName"]) : "");
-                                            });
-                                          },
+                                        trailing: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: <Widget>[IconButton(
+                                            icon: const Icon(Icons.edit),
+                                            color: Colors.indigo,
+                                            onPressed: () {
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(10)),
+                                                      title: const Text("Update Note"),
+                                                      content: SizedBox(
+                                                        width: 400,
+                                                        height: 50,
+                                                        child: Column(
+                                                          children: [
+                                                            TextField(
+                                                              style: const TextStyle(
+                                                                color: Colors.grey,
+                                                              ),
+                                                              decoration: const InputDecoration(
+                                                                  hintText: 'New Name',
+                                                                  hintStyle: TextStyle(
+                                                                    color: Colors.grey,
+                                                                  ),
+                                                                  enabledBorder: UnderlineInputBorder(
+                                                                    borderSide: BorderSide(color: Colors.grey),
+                                                                  )),
+                                                              onChanged: (String value) {
+                                                                Folderupdate = value;
+                                                              },
+                                                            ),
+
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      actions: <Widget>[
+                                                        TextButton(
+                                                            onPressed: () {
+                                                              updatename =  (documentSnapshot!= null) ? (documentSnapshot["ThoughtId"]) : "";
+                                                              setState(() {
+                                                                //todos.add(title);
+
+                                                                updateToDo();
+                                                              });
+                                                              Navigator.of(context).pop();
+                                                            },
+                                                            child: const Text("Update"))
+                                                      ],
+                                                    );
+                                                  });
+                                            },
+                                          ),
+                                            IconButton(
+                                              icon: const Icon(Icons.check),
+                                              color: Colors.indigo,
+                                              onPressed: () {
+                                                setState(() {
+                                                  //todos.removeAt(index);
+                                                  deleteTodo((documentSnapshot != null) ? (documentSnapshot["ThoughtId"]) : "");
+                                                });
+                                              },
+                                            ),
+                                          ],
                                         ),
 
                                       ),
                                     ));
                               }),
                         ),
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            color: Colors.indigoAccent,
-                            child: const ListTile(
-                              leading: Text('Assign delegates',style: TextStyle(fontSize: 18 ,fontWeight: FontWeight.bold) ),
 
-                            ),
-                          ),
-                        Expanded(
-                      child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: snapshot.data?.docs.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              QueryDocumentSnapshot<Object?>? documentSnapshot =
-                              snapshot.data?.docs[index];
-                              return Dismissible(
-                                  key: Key(index.toString()),
-                                  child: Card(
-                                    elevation: 4,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(50.0),
-                                    ),
 
-                                    child: ListTile(
-                                      title: Text((documentSnapshot != null) ? (documentSnapshot["MUNSOCDelegateName"]) : ""
-                                      ),
-                                      trailing: IconButton(
-                                        icon: const Icon(Icons.delete),
-                                        color: Colors.indigo,
-                                        onPressed: () {
-                                          setState(() {
-                                            //todos.removeAt(index);
-                                            deleteTodoDelegates((documentSnapshot != null) ? (documentSnapshot["MUNSOCDelegateName"]) : "");
-                                          });
-                                        },
-                                      ),
 
-                                    ),
-                                  ));
-                            }),
-                        ),
                   ],
                     );
                   }
@@ -188,10 +207,10 @@ class _RoomInfoState extends State<RoomInfo> {
                   return AlertDialog(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
-                    title: const Text("Edit Room"),
+                    title: const Text("Add Todo"),
                     content: SizedBox(
                       width: 400,
-                      height: 100,
+                      height: 50,
                       child: Column(
                         children: [
                           TextField(
@@ -199,7 +218,7 @@ class _RoomInfoState extends State<RoomInfo> {
                               color: Colors.grey,
                             ),
                             decoration: InputDecoration(
-                                hintText: ' ER ',
+                                hintText: ' ToDo ',
                                 hintStyle: TextStyle(
                                   color: Colors.grey,
                                 ),
@@ -207,25 +226,10 @@ class _RoomInfoState extends State<RoomInfo> {
                                   borderSide: BorderSide(color: Colors.grey),
                                 )),
                             onChanged: (String value) {
-                              ername = value;
+                              Thoughtname  = value ;
                             },
                           ),
-                          TextField(
-                            style: TextStyle(
-                              color: Colors.grey,
-                            ),
-                            decoration: InputDecoration(
-                                hintText: 'Delegate',
-                                hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                ),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey),
-                                )),
-                            onChanged: (String value) {
-                              delegatename = value;
-                            },
-                          ),
+
                         ],
                       ),
                     ),
@@ -233,12 +237,12 @@ class _RoomInfoState extends State<RoomInfo> {
                       TextButton(
                           onPressed: () {
                             setState(() {
-                              erassgn();
-                              delegateassgn();
+                              CreateTodo();
+
                             });
                             Navigator.of(context).pop();
                           },
-                          child: const Text("Edit"))
+                          child: const Text("Add"))
                     ],
                   );
                 });
@@ -250,7 +254,7 @@ class _RoomInfoState extends State<RoomInfo> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  'EDIT ROOM',
+                  'To Do',
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,

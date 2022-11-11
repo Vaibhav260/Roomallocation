@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
 
-      title: 'Room Allocation',
+      title: 'To do list',
       theme: ThemeData(
         primarySwatch: Colors.indigo,
       ),
