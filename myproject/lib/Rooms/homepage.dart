@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myproject/Rooms/roominfo.dart';
-
+import 'package:flutter_swipe_action_cell/flutter_swipe_action_cell.dart';
  class Homepage extends StatefulWidget {
    const Homepage({Key? key}) : super(key: key);
 
@@ -57,194 +57,192 @@ import 'package:myproject/Rooms/roominfo.dart';
    @override
    Widget build(BuildContext context) {
      return  Scaffold(
+       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
        appBar: AppBar(
          title: const Text('To Do list'),
          centerTitle: true,
        ),
-       body: StreamBuilder<QuerySnapshot>(
-           stream:  FirebaseFirestore.instance.collection("folder").snapshots(),
-       builder: (context, snapshot) {
-             if (snapshot.hasError) {
-       return const Text('Something went wrong');
-           } else if (snapshot.hasData || snapshot.data != null) {
-       return ListView.builder(
-           key: UniqueKey(),
-           shrinkWrap: true,
-           itemCount: snapshot.data?.docs.length,
-           itemBuilder: (BuildContext context, int index) {
-             QueryDocumentSnapshot<Object?>? documentSnapshot =
-             snapshot.data?.docs[index];
-             return Dismissible(
-                 key: Key(index.toString()),
-                 child: Card(
-                   elevation: 4,
-                   child: ListTile(
-                     title: Text((documentSnapshot != null) ? (documentSnapshot["FolderName"]) : ""
-                     ),
+       body: Column(
+         children: <Widget>[
+           StreamBuilder<QuerySnapshot>(
+               stream:  FirebaseFirestore.instance.collection("folder").snapshots(),
+           builder: (context, snapshot) {
+                 if (snapshot.hasError) {
+           return const Text('Something went wrong');
+               } else if (snapshot.hasData || snapshot.data != null) {
+           return ListView.builder(
+               key: UniqueKey(),
+               shrinkWrap: true,
+               itemCount: snapshot.data?.docs.length,
+               itemBuilder: (BuildContext context, int index) {
+                 QueryDocumentSnapshot<Object?>? documentSnapshot =
+                 snapshot.data?.docs[index];
+                 return Dismissible(
+                     key: Key(index.toString()),
+                     direction: DismissDirection.endToStart,
+                     child: Card(
 
-                     trailing: Row(
-                       mainAxisSize: MainAxisSize.min,
-                       children: <Widget>[
-                         IconButton(
-                           icon: const Icon(Icons.edit),
-                           color: Colors.indigo,
-                           onPressed: () {
-                             showDialog(
-                                 context: context,
-                                 builder: (BuildContext context) {
-                                   return AlertDialog(
-                                     shape: RoundedRectangleBorder(
-                                         borderRadius: BorderRadius.circular(10)),
-                                     title: const Text("Update Note"),
-                                     content: SizedBox(
-                                       width: 400,
-                                       height: 50,
-                                       child: Column(
-                                         children: [
-                                           TextField(
-                                             style: const TextStyle(
+                       child: ListTile(
+                         title: Text((documentSnapshot != null) ? (documentSnapshot["FolderName"]) : ""
+                         ),
 
-                                               color: Colors.grey,
-                                             ),
-                                             decoration: const InputDecoration(
-                                                 hintText: 'New Name',
-                                                 hintStyle: TextStyle(
+                         trailing: Row(
+                           mainAxisSize: MainAxisSize.min,
+                           children: <Widget>[
+                             IconButton(
+                               icon: const Icon(Icons.edit),
+                               color: Colors.indigo,
+                               onPressed: () {
+                                 showDialog(
+                                     context: context,
+                                     builder: (BuildContext context) {
+                                       return AlertDialog(
+                                         shape: RoundedRectangleBorder(
+                                             borderRadius: BorderRadius.circular(10)),
+                                         title: const Text("Update Note"),
+                                         content: SizedBox(
+                                           width: 400,
+                                           height: 50,
+                                           child: Column(
+                                             children: [
+                                               TextField(
+                                                 style: const TextStyle(
+
                                                    color: Colors.grey,
                                                  ),
-                                                 enabledBorder: UnderlineInputBorder(
-                                                   borderSide: BorderSide(color: Colors.grey),
-                                                 )),
-                                             onChanged: (String value) {
+                                                 decoration: const InputDecoration(
+                                                     hintText: 'New Name',
+                                                     hintStyle: TextStyle(
+                                                       color: Colors.grey,
+                                                     ),
+                                                     enabledBorder: UnderlineInputBorder(
+                                                       borderSide: BorderSide(color: Colors.grey),
+                                                     )),
+                                                 onChanged: (String value) {
 
-                                               Folderupdate = value;
-                                             },
+                                                   Folderupdate = value;
+                                                 },
+                                               ),
+
+                                             ],
+
                                            ),
-
+                                         ),
+                                         actions: <Widget>[
+                                           TextButton(
+                                               onPressed: () {
+                                                 updatename = (documentSnapshot != null) ? (documentSnapshot["FolderId"]) : "";
+                                                 setState(() {
+                                                   //todos.add(title);
+                                                   updateToDo();
+                                                 });
+                                                 Navigator.of(context).pop();
+                                               },
+                                               child: const Text("Update"))
                                          ],
-                                       ),
-                                     ),
-                                     actions: <Widget>[
-                                       TextButton(
-                                           onPressed: () {
-                                             updatename = (documentSnapshot != null) ? (documentSnapshot["FolderId"]) : "";
-                                             setState(() {
-                                               //todos.add(title);
-                                               updateToDo();
-                                             });
-                                             Navigator.of(context).pop();
-                                           },
-                                           child: const Text("Update"))
-                                     ],
-                                   );
-                                 });
-                           },
-                         ),
-                           IconButton(
-                           icon: const Icon(Icons.check),
-                           color: Colors.indigo,
-                           onPressed: () {
-                             setState(() {
-                               //todos.removeAt(index);
-                               deleteTodo((documentSnapshot != null) ? (documentSnapshot["FolderId"]) : "");
-                             });
-                           },
-                         ),
-                       ],
-                     ),
+                                       );
+                                     });
+                               },
+                             ),
 
-                     onTap: () {
-                       Navigator.push(
-                           context,
-                           MaterialPageRoute(
-                               builder: (context) => RoomInfo(roomcoming: (documentSnapshot != null) ? (documentSnapshot["FolderName"]) : "")));
-                     },
-                   ),
-                 ));
-           });
-           }
-           return const Center(
-       child: CircularProgressIndicator(
-         valueColor: AlwaysStoppedAnimation<Color>(
-           Colors.red,
-         ),
-       ),
-           );
-       }),
-       persistentFooterButtons: [ElevatedButton(
-         style: ElevatedButton.styleFrom(
-           padding: EdgeInsets.zero,
-           minimumSize: const Size(20, 50),
-           elevation: 10,
-         ),
-         onPressed: () {
-           showDialog(
-               context: context,
-               builder: (BuildContext context) {
-                 return AlertDialog(
-                   shape: RoundedRectangleBorder(
-                       borderRadius: BorderRadius.circular(10)),
-                   title: const Text("Add Note"),
-                   content: SizedBox(
-                     width: 400,
-                     height: 50,
-                     child: Column(
-                       children: [
-                         TextField(
-                           style: const TextStyle(
-                             color: Colors.grey,
-                           ),
-                           decoration: const InputDecoration(
-                               hintText: 'Notename',
-                               hintStyle: TextStyle(
-                                 color: Colors.grey,
-                               ),
-                               enabledBorder: UnderlineInputBorder(
-                                 borderSide: BorderSide(color: Colors.grey),
-                               )),
-                           onChanged: (String value) {
-                             Foldername = value;
-                           },
+
+                           ],
                          ),
 
-                       ],
-                     ),
-                   ),
-                   actions: <Widget>[
-                     TextButton(
-                         onPressed: () {
-                           setState(() {
-                             //todos.add(title);
-                             createToDo();
-                           });
-                           Navigator.of(context).pop();
+                         onTap: () {
+                           Navigator.push(
+                               context,
+                               MaterialPageRoute(
+                                   builder: (context) => RoomInfo(roomcoming: (documentSnapshot != null) ? (documentSnapshot["FolderName"]) : "")));
                          },
-                         child: const Text("Add"))
-                   ],
+                       ),
+                     ),
+                   onDismissed: (direction){
+                     setState(() {
+                       //todos.removeAt(index);
+                       deleteTodo((documentSnapshot != null) ? (documentSnapshot["FolderId"]) : "");
+                     });
+
+                   },
+                   background: Container(
+                       color: Colors.redAccent,),
                  );
                });
-         },
-         child: Row(
-           mainAxisAlignment: MainAxisAlignment.center,
-           crossAxisAlignment: CrossAxisAlignment.center,
-           children: const [
-             Text(
-               'ADD Note',
-               style: TextStyle(
-                 fontSize: 20,
-                 fontWeight: FontWeight.bold,
-               ),
+               }
+               return const Center(
+           child: CircularProgressIndicator(
+             valueColor: AlwaysStoppedAnimation<Color>(
+               Colors.red,
              ),
-             Icon(
-               Icons.add,
-               size: 30,
-             ),
-           ],
-         ),
+           ),
+               );
+           }),
 
+
+         ],
 
        ),
 
-     ],
+
+floatingActionButton: FloatingActionButton.extended(
+
+  backgroundColor: Colors.indigo,
+  onPressed: () {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)),
+            title: const Text("Add Note"),
+            content: SizedBox(
+              width: 400,
+              height: 50,
+              child: Column(
+                children: [
+                  TextField(
+                    style: const TextStyle(
+                      color: Colors.grey,
+                    ),
+                    decoration: const InputDecoration(
+                        hintText: 'Notename',
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                        ),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        )),
+                    onChanged: (String value) {
+                      Foldername = value;
+                    },
+                  ),
+
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () {
+                    setState(() {
+                      //todos.add(title);
+                      createToDo();
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("Add"))
+            ],
+          );
+        });
+  },
+  icon: const Icon(
+    Icons.add,
+    size: 35,
+    color: Colors.white,
+  ),
+  label: Text("Add Folder"),
+
+),
+
      );
 
 

@@ -63,6 +63,7 @@ class _RoomInfoState extends State<RoomInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         appBar: AppBar(
           title: Text('${widget.roomcoming}'),
           centerTitle: true,
@@ -97,6 +98,7 @@ class _RoomInfoState extends State<RoomInfo> {
 
                                 return Dismissible(
                                     key: Key(index.toString()),
+                                    direction: DismissDirection.endToStart,
                                     child: Card(
                                       elevation: 4,
                                       shape: RoundedRectangleBorder(
@@ -160,21 +162,22 @@ class _RoomInfoState extends State<RoomInfo> {
                                                   });
                                             },
                                           ),
-                                            IconButton(
-                                              icon: const Icon(Icons.check),
-                                              color: Colors.indigo,
-                                              onPressed: () {
-                                                setState(() {
-                                                  //todos.removeAt(index);
-                                                  deleteTodo((documentSnapshot != null) ? (documentSnapshot["ThoughtId"]) : "");
-                                                });
-                                              },
-                                            ),
+
                                           ],
                                         ),
 
                                       ),
-                                    ));
+                                    ),
+                                    onDismissed: (direction){
+                                  setState(() {
+                                    //todos.removeAt(index);
+                                    deleteTodo((documentSnapshot != null) ? (documentSnapshot["FolderId"]) : "");
+                                  });
+
+                                },
+                                background: Container(
+                                color: Colors.redAccent,),
+                                );
                               }),
                         ),
 
